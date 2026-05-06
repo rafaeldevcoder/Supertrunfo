@@ -3,222 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARES-1 | Mars Command Center</title>
+    <title>TERMINAL ARES-1 | ACTIVE COMMAND</title>
     <style>
         :root {
-            --mars-red: #ff4d4d;
-            --mars-glow: rgba(255, 77, 77, 0.3);
-            --bg-dark: #050505;
+            --neon-blue: #00f2ff;
+            --neon-red: #ff003c;
+            --bg-black: #020202;
+            --glass: rgba(0, 242, 255, 0.05);
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--mars-red);
-            font-family: 'Courier New', monospace;
+            background-color: var(--bg-black);
+            color: var(--neon-blue);
+            font-family: 'Segoe UI', Monaco, monospace;
             margin: 0;
-            overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* Scanlines e Grão de Filme */
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 3px, 2px 100%;
-            z-index: 10;
-            pointer-events: none;
+        /* Moldura de Interface */
+        .ui-frame {
+            border: 2px solid var(--neon-blue);
+            margin: 10px;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 60px 1fr 150px;
+            gap: 10px;
+            padding: 10px;
+            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.2);
         }
 
+        /* Top Bar */
         header {
-            padding: 20px;
-            border-bottom: 2px solid var(--mars-red);
+            grid-column: 1 / span 3;
+            border-bottom: 1px solid var(--neon-blue);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(20, 0, 0, 0.8);
+            padding: 0 20px;
+            background: var(--glass);
         }
 
-        .main-layout {
-            display: grid;
-            grid-template-columns: 3fr 1fr;
-            gap: 20px;
-            padding: 20px;
-            flex-grow: 1;
-        }
-
-        /* Cartões de Dados */
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .panel {
-            border: 1px solid var(--mars-red);
-            padding: 15px;
-            background: rgba(255, 0, 0, 0.02);
-            box-shadow: inset 0 0 10px var(--mars-glow);
-        }
-
-        .data-value {
-            font-size: 2.2rem;
-            color: #fff;
-            text-shadow: 0 0 8px var(--mars-red);
-        }
-
-        /* Consola de Log */
-        .console {
-            border: 1px solid var(--mars-red);
-            background: #000;
+        /* Sidebar de Recursos */
+        .sidebar {
+            border-right: 1px solid var(--neon-blue);
             padding: 10px;
-            font-size: 0.8rem;
-            height: 400px;
-            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Área Central (Câmara) */
+        .viewport {
             position: relative;
+            border: 1px solid var(--neon-blue);
+            overflow: hidden;
+            background: #000;
         }
 
-        .console-title {
-            background: var(--mars-red);
-            color: black;
-            padding: 2px 5px;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .log-entry { margin-bottom: 5px; border-left: 2px solid var(--mars-red); padding-left: 5px; }
-
-        /* Barras de Recurso */
-        .bar-container {
+        #mars-feed {
             width: 100%;
-            height: 10px;
-            border: 1px solid var(--mars-red);
-            margin-top: 10px;
-        }
-        .bar-fill {
             height: 100%;
-            background: var(--mars-red);
-            width: 80%;
-            transition: width 0.5s;
+            object-fit: cover;
+            transition: filter 0.5s;
         }
 
-        .emergency-btn {
+        /* Terminal Interativo */
+        .terminal-zone {
+            grid-column: 1 / span 2;
+            border-top: 1px solid var(--neon-blue);
+            padding: 10px;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        .input-line {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #cmd-input {
             background: transparent;
-            color: var(--mars-red);
-            border: 2px solid var(--mars-red);
-            padding: 15px;
-            cursor: pointer;
+            border: none;
+            border-bottom: 1px solid var(--neon-blue);
+            color: white;
+            flex: 1;
+            outline: none;
+            padding: 5px;
+        }
+
+        /* Controlos de Câmara */
+        .controls {
+            grid-column: 3;
+            grid-row: 2 / span 2;
+            border-left: 1px solid var(--neon-blue);
+            padding: 10px;
+        }
+
+        .btn {
             width: 100%;
-            margin-top: 20px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--glass);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            cursor: pointer;
+            text-transform: uppercase;
             font-weight: bold;
-            letter-spacing: 2px;
         }
 
-        .emergency-btn:hover {
-            background: var(--mars-red);
-            color: black;
+        .btn:hover { background: var(--neon-blue); color: black; }
+
+        .stat-box {
+            background: var(--glass);
+            padding: 10px;
+            border-left: 4px solid var(--neon-blue);
         }
 
-        @keyframes blink { 50% { opacity: 0; } }
-        .cursor { animation: blink 1s infinite; }
+        .critical { color: var(--neon-red); border-color: var(--neon-red); }
+
     </style>
 </head>
 <body>
 
-    <header>
-        <div>
-            <h1 style="margin:0; font-size: 1.5rem;">ARES-1 MISSION CONTROL</h1>
-            <small>LOCATION: ELYSIUM PLANITIA | SOL: <span id="sol-counter">482</span></small>
-        </div>
-        <div id="clock">00:00:00</div>
-    </header>
+    <div class="ui-frame">
+        <header>
+            <div>SYSTEM: ONLINE</div>
+            <div style="font-size: 1.5rem; letter-spacing: 5px;">ARES INTERFACE</div>
+            <div id="mission-time">SOL 482 - 12:00:00</div>
+        </header>
 
-    <div class="main-layout">
-        <section>
-            <div class="status-grid">
-                <div class="panel">
-                    <h3>TEMP. EXTERNA</h3>
-                    <div class="data-value" id="temp">-62.4°C</div>
-                </div>
-                <div class="panel">
-                    <h3>OXIGÉNIO</h3>
-                    <div class="data-value">98.2%</div>
-                    <div class="bar-container"><div class="bar-fill" style="width: 98%;"></div></div>
-                </div>
-                <div class="panel">
-                    <h3>ENERGIA SOLAR</h3>
-                    <div class="data-value" id="power">4.2 kW</div>
-                </div>
+        <aside class="sidebar">
+            <div class="stat-box">
+                <small>OXIGÉNIO</small>
+                <div id="ox-level">98%</div>
             </div>
-
-            <div class="panel" style="margin-top: 20px; text-align: center;">
-                <img src="https://www.nasa.gov/wp-content/uploads/2023/03/pia25640-perseverance-selfie-at-belva-crater-horizontal.jpg" 
-                     alt="Mars View" style="width: 100%; filter: sepia(0.5) contrast(1.2) brightness(0.8);">
-                <p>LIVE FEED: ROVER UNIT-01</p>
+            <div class="stat-box">
+                <small>BATERIA</small>
+                <div id="bat-level">75%</div>
             </div>
-        </section>
-
-        <aside>
-            <div class="console">
-                <div class="console-title">SYSTEM_LOG_v4.0</div>
-                <div id="log-content">
-                    <div class="log-entry">> Inicializando sistemas...</div>
-                    <div class="log-entry">> Link satélite ativo.</div>
-                </div>
-                <span class="cursor">_</span>
-            </div>
-            <button class="emergency-btn" onclick="triggerAlarm()">ABORTAR MISSÃO</button>
+            <button class="btn critical" onclick="toggleAlert()">EMERGÊNCIA</button>
         </aside>
+
+        <main class="viewport">
+            <img id="mars-feed" src="https://www.nasa.gov/wp-content/uploads/2023/03/pia25640-perseverance-selfie-at-belva-crater-horizontal.jpg" alt="Mars">
+            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px;">
+                CAM-01: GALE CRATER
+            </div>
+        </main>
+
+        <div class="terminal-zone">
+            <div id="terminal-output">
+                <div>> Conexão estabelecida com Satélite MRO.</div>
+                <div>> Digite 'ajuda' para comandos.</div>
+            </div>
+            <div class="input-line">
+                <span>USER@MARS:~$</span>
+                <input type="text" id="cmd-input" autofocus>
+            </div>
+        </div>
+
+        <section class="controls">
+            <h3>FILTROS DE VÍDEO</h3>
+            <button class="btn" onclick="setFilter('none')">Normal</button>
+            <button class="btn" onclick="setFilter('sepia(1) hue-rotate(320deg) saturate(3)')">Térmico</button>
+            <button class="btn" onclick="setFilter('grayscale(1) brightness(1.2) contrast(1.5)')">Noturno</button>
+            <button class="btn" onclick="setFilter('blur(5px) grayscale(1)')">Scan Profundo</button>
+            
+            <h3 style="margin-top:20px;">ACÇÕES</h3>
+            <button class="btn" onclick="addOutput('A escanear minerais...')">Escanear Solo</button>
+            <button class="btn" onclick="addOutput('Antena redirecionada para a Terra.')">Alinhar Antena</button>
+        </section>
     </div>
 
     <script>
-        // 1. Relógio em tempo real
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString();
-        }
-        setInterval(updateClock, 1000);
-
-        // 2. Simulação de sensores oscilantes
+        // Relógio
         setInterval(() => {
-            const temp = (-60 + (Math.random() * 5)).toFixed(1);
-            const power = (4 + (Math.random() * 0.5)).toFixed(2);
-            document.getElementById('temp').innerText = temp + "°C";
-            document.getElementById('power').innerText = power + " kW";
-        }, 3000);
+            const now = new Date();
+            document.getElementById('mission-time').innerText = "SOL 482 - " + now.toLocaleTimeString();
+        }, 1000);
 
-        // 3. Gerador de Log Automático
-        const messages = [
-            "Tempestade de areia detetada a 40km.",
-            "Calibração de antena concluída.",
-            "Aviso: Nível de poeira nos painéis subiu 2%.",
-            "Sinal recebido da Deep Space Network.",
-            "Rover movendo-se para quadrante B-12."
-        ];
-
-        function addLog() {
-            const logContainer = document.getElementById('log-content');
-            const msg = messages[Math.floor(Math.random() * messages.length)];
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            div.innerText = "> " + msg;
-            logContainer.appendChild(div);
-            
-            // Manter apenas as últimas 10 mensagens
-            if(logContainer.children.length > 10) {
-                logContainer.removeChild(logContainer.firstChild);
-            }
+        // Controlo de Filtros
+        function setFilter(filterStr) {
+            document.getElementById('mars-feed').style.filter = filterStr;
+            addOutput("Filtro de câmara alterado.");
         }
-        setInterval(addLog, 5000);
 
-        function triggerAlarm() {
-            document.body.style.backgroundColor = "red";
-            setTimeout(() => { document.body.style.backgroundColor = "#050505"; }, 200);
-            alert("ALERTA CRÍTICO: Comando de aborto recebido!");
+        // Lógica do Terminal
+        const input = document.getElementById('cmd-input');
+        const output = document.getElementById('terminal-output');
+
+        function addOutput(text) {
+            const div = document.createElement('div');
+            div.innerText = "> " + text;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = input.value.toLowerCase();
+                addOutput(cmd);
+                
+                if (cmd === 'ajuda') {
+                    addOutput("Comandos: status, limpar, scan, alerta, bio");
+                } else if (cmd === 'status') {
+                    addOutput("Sistemas nominais. Oxigénio: 98%. Temperatura: -55°C.");
+                } else if (cmd === 'limpar') {
+                    output.innerHTML = "";
+                } else if (cmd === 'alerta') {
+                    toggleAlert();
+                } else if (cmd === 'scan') {
+                    addOutput("A iniciar scan infravermelho... Nenhum sinal biológico detetado.");
+                } else {
+                    addOutput("Comando desconhecido: " + cmd);
+                }
+                
+                input.value = "";
+            }
+        });
+
+        function toggleAlert() {
+            const frame = document.querySelector('.ui-frame');
+            if (frame.style.borderColor === 'rgb(255, 0, 60)') {
+                frame.style.borderColor = 'var(--neon-blue)';
+                document.body.style.color = 'var(--neon-blue)';
+                addOutput("Alerta cancelado.");
+            } else {
+                frame.style.borderColor = 'var(--neon-red)';
+                document.body.style.color = 'var(--neon-red)';
+                addOutput("ALERTA CRÍTICO ATIVADO!");
+            }
         }
     </script>
 </body>
