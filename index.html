@@ -3,250 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL ARES-1 | ACTIVE COMMAND</title>
+    <title>ARES-OS | Terminal de Comando</title>
     <style>
         :root {
-            --neon-blue: #00f2ff;
-            --neon-red: #ff003c;
-            --bg-black: #020202;
-            --glass: rgba(0, 242, 255, 0.05);
+            --neon: #00f2ff;
+            --danger: #ff003c;
+            --warning: #ffbd2e;
+            --bg: #01080b;
+            --panel: rgba(0, 242, 255, 0.03);
         }
+
+        * { box-sizing: border-box; cursor: crosshair; }
 
         body {
-            background-color: var(--bg-black);
-            color: var(--neon-blue);
-            font-family: 'Segoe UI', Monaco, monospace;
+            background-color: var(--bg);
+            color: var(--neon);
+            font-family: 'Segoe UI', 'Courier New', monospace;
             margin: 0;
-            display: flex;
-            flex-direction: column;
             height: 100vh;
+            display: flex;
             overflow: hidden;
-        }
-
-        /* Moldura de Interface */
-        .ui-frame {
-            border: 2px solid var(--neon-blue);
-            margin: 10px;
-            flex: 1;
-            display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            grid-template-rows: 60px 1fr 150px;
-            gap: 10px;
-            padding: 10px;
-            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.2);
-        }
-
-        /* Top Bar */
-        header {
-            grid-column: 1 / span 3;
-            border-bottom: 1px solid var(--neon-blue);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            background: var(--glass);
-        }
-
-        /* Sidebar de Recursos */
-        .sidebar {
-            border-right: 1px solid var(--neon-blue);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Área Central (Câmara) */
-        .viewport {
-            position: relative;
-            border: 1px solid var(--neon-blue);
-            overflow: hidden;
-            background: #000;
-        }
-
-        #mars-feed {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: filter 0.5s;
-        }
-
-        /* Terminal Interativo */
-        .terminal-zone {
-            grid-column: 1 / span 2;
-            border-top: 1px solid var(--neon-blue);
-            padding: 10px;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-        }
-
-        #terminal-output {
-            flex: 1;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-        }
-
-        .input-line {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        #cmd-input {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--neon-blue);
-            color: white;
-            flex: 1;
-            outline: none;
-            padding: 5px;
-        }
-
-        /* Controlos de Câmara */
-        .controls {
-            grid-column: 3;
-            grid-row: 2 / span 2;
-            border-left: 1px solid var(--neon-blue);
-            padding: 10px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: var(--glass);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            cursor: pointer;
             text-transform: uppercase;
+        }
+
+        /* Moldura estilo HUD */
+        .hud-frame {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            grid-template-rows: auto 1fr 200px;
+            gap: 15px;
+            width: 100%;
+            padding: 20px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+        }
+
+        /* Painéis Genéricos */
+        .panel {
+            border: 1px solid var(--neon);
+            background: var(--panel);
+            padding: 15px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.05);
+        }
+
+        .panel-header {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--bg);
+            padding: 0 10px;
+            font-size: 0.7rem;
             font-weight: bold;
         }
 
-        .btn:hover { background: var(--neon-blue); color: black; }
-
-        .stat-box {
-            background: var(--glass);
-            padding: 10px;
-            border-left: 4px solid var(--neon-blue);
+        /* Header Principal */
+        .top-bar {
+            grid-column: 1 / span 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px double var(--neon);
+            padding-bottom: 10px;
         }
 
-        .critical { color: var(--neon-red); border-color: var(--neon-red); }
+        /* Área da Câmara */
+        .viewport-container {
+            grid-column: 2;
+            grid-row: 2;
+            position: relative;
+            border: 1px solid var(--neon);
+        }
 
+        #camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.1) brightness(0.9);
+        }
+
+        /* Inventário e Status */
+        .sidebar-left { display: flex; flex-direction: column; gap: 15px; }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #111;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--neon);
+            transition: width 0.3s;
+        }
+
+        /* Terminal */
+        .terminal {
+            grid-column: 1 / span 2;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #log {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            padding: 5px;
+            color: #fff;
+        }
+
+        .input-area {
+            display: flex;
+            border-top: 1px solid var(--neon);
+            padding: 10px;
+        }
+
+        #cmd-in {
+            background: transparent;
+            border: none;
+            color: var(--neon);
+            width: 100%;
+            outline: none;
+        }
+
+        /* Botoneria Lateral */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--neon);
+            color: var(--neon);
+            padding: 10px;
+            font-size: 0.7rem;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: var(--neon);
+            color: #000;
+        }
+
+        .item-list { font-size: 0.8rem; list-style: none; padding: 0; }
+        .item-list li { border-bottom: 1px solid rgba(0, 242, 255, 0.1); padding: 5px 0; }
+
+        @keyframes scanline { 0% { top: 0; } 100% { top: 100%; } }
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 242, 255, 0.3);
+            top: 0;
+            animation: scanline 4s linear infinite;
+        }
     </style>
 </head>
 <body>
 
-    <div class="ui-frame">
-        <header>
-            <div>SYSTEM: ONLINE</div>
-            <div style="font-size: 1.5rem; letter-spacing: 5px;">ARES INTERFACE</div>
-            <div id="mission-time">SOL 482 - 12:00:00</div>
+    <div class="hud-frame">
+        <header class="top-bar">
+            <div>MISSION: RED DAWN</div>
+            <div style="font-size: 1.2rem;">ARES-OS COMMAND TERMINAL v5.0</div>
+            <div id="clock">00:00:00</div>
         </header>
 
-        <aside class="sidebar">
-            <div class="stat-box">
-                <small>OXIGÉNIO</small>
-                <div id="ox-level">98%</div>
+        <div class="sidebar-left">
+            <div class="panel">
+                <div class="panel-header">SISTEMAS VITAIS</div>
+                <div class="stat-row">
+                    <span>OXIGÉNIO</span> <span id="ox-val">94%</span>
+                </div>
+                <div class="progress-bar"><div id="ox-bar" class="progress-fill" style="width: 94%;"></div></div>
+                
+                <div class="stat-row" style="margin-top:15px;">
+                    <span>BATERIA</span> <span id="bat-val">88%</span>
+                </div>
+                <div class="progress-bar"><div id="bat-bar" class="progress-fill" style="width: 88%; background: var(--warning);"></div></div>
             </div>
-            <div class="stat-box">
-                <small>BATERIA</small>
-                <div id="bat-level">75%</div>
-            </div>
-            <button class="btn critical" onclick="toggleAlert()">EMERGÊNCIA</button>
-        </aside>
 
-        <main class="viewport">
-            <img id="mars-feed" src="https://www.nasa.gov/wp-content/uploads/2023/03/pia25640-perseverance-selfie-at-belva-crater-horizontal.jpg" alt="Mars">
-            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px;">
-                CAM-01: GALE CRATER
-            </div>
-        </main>
-
-        <div class="terminal-zone">
-            <div id="terminal-output">
-                <div>> Conexão estabelecida com Satélite MRO.</div>
-                <div>> Digite 'ajuda' para comandos.</div>
-            </div>
-            <div class="input-line">
-                <span>USER@MARS:~$</span>
-                <input type="text" id="cmd-input" autofocus>
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header">INVENTÁRIO DE AMOSTRAS</div>
+                <ul id="inventory" class="item-list">
+                    <li>NENHUMA AMOSTRA COLETADA</li>
+                </ul>
             </div>
         </div>
 
-        <section class="controls">
-            <h3>FILTROS DE VÍDEO</h3>
-            <button class="btn" onclick="setFilter('none')">Normal</button>
-            <button class="btn" onclick="setFilter('sepia(1) hue-rotate(320deg) saturate(3)')">Térmico</button>
-            <button class="btn" onclick="setFilter('grayscale(1) brightness(1.2) contrast(1.5)')">Noturno</button>
-            <button class="btn" onclick="setFilter('blur(5px) grayscale(1)')">Scan Profundo</button>
-            
-            <h3 style="margin-top:20px;">ACÇÕES</h3>
-            <button class="btn" onclick="addOutput('A escanear minerais...')">Escanear Solo</button>
-            <button class="btn" onclick="addOutput('Antena redirecionada para a Terra.')">Alinhar Antena</button>
-        </section>
+        <div class="viewport-container">
+            <div class="scanline"></div>
+            <img id="camera-feed" src="https://www.nasa.gov/wp-content/uploads/2023/03/pia25640-perseverance-selfie-at-belva-crater-horizontal.jpg">
+            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); padding: 5px; font-size: 0.7rem;">
+                COORDENADAS: 18.4°N, 77.5°E
+            </div>
+        </div>
+
+        <div class="sidebar-right">
+            <div class="panel" style="height: 100%;">
+                <div class="panel-header">CONTROLO MANUAL</div>
+                <div class="btn-grid">
+                    <button onclick="runCommand('scan')">SCAN SOLO</button>
+                    <button onclick="runCommand('coletar')">RECOLHER</button>
+                    <button onclick="changeCam('sepia(1) hue-rotate(320deg)')">TERM.</button>
+                    <button onclick="changeCam('grayscale(1) brightness(1.5)')">NOTURNO</button>
+                    <button onclick="changeCam('none')">REPOR</button>
+                    <button onclick="runCommand('limpar')">CLEAR</button>
+                </div>
+                <hr style="border: 0; border-top: 1px solid var(--neon); margin: 20px 0;">
+                <div style="font-size: 0.7rem;">
+                    <strong>HARDWARE:</strong><br>
+                    - MOTOR: OK<br>
+                    - BROCA: <span style="color: var(--warning)">AQUECIDA</span><br>
+                    - ANTENA: LIGADA
+                </div>
+            </div>
+        </div>
+
+        <div class="panel terminal">
+            <div class="panel-header">CONSOLA DE DADOS</div>
+            <div id="log"></div>
+            <div class="input-area">
+                <span>USER@ARES:~$</span>
+                <input type="text" id="cmd-in" placeholder="DIGITE UM COMANDO..." autofocus>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Relógio
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('mission-time').innerText = "SOL 482 - " + now.toLocaleTimeString();
-        }, 1000);
+        const state = {
+            ox: 94,
+            bat: 88,
+            items: [],
+            minerais: ["Hematita", "Magnetita", "Gelo Basáltico", "Silicato de Ferro", "Quartzo Marciano"]
+        };
 
-        // Controlo de Filtros
-        function setFilter(filterStr) {
-            document.getElementById('mars-feed').style.filter = filterStr;
-            addOutput("Filtro de câmara alterado.");
+        function updateUI() {
+            document.getElementById('ox-val').innerText = state.ox + "%";
+            document.getElementById('ox-bar').style.width = state.ox + "%";
+            document.getElementById('bat-val').innerText = state.bat + "%";
+            document.getElementById('bat-bar').style.width = state.bat + "%";
+            
+            const inv = document.getElementById('inventory');
+            if(state.items.length > 0) {
+                inv.innerHTML = state.items.map(i => `<li>[OK] ${i}</li>`).join('');
+            }
         }
 
-        // Lógica do Terminal
-        const input = document.getElementById('cmd-input');
-        const output = document.getElementById('terminal-output');
-
-        function addOutput(text) {
-            const div = document.createElement('div');
-            div.innerText = "> " + text;
-            output.appendChild(div);
-            output.scrollTop = output.scrollHeight;
+        function addLog(msg, type = "info") {
+            const log = document.getElementById('log');
+            const color = type === "error" ? "var(--danger)" : "#fff";
+            log.innerHTML += `<div style="color: ${color}">> [${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            log.scrollTop = log.scrollHeight;
         }
 
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const cmd = input.value.toLowerCase();
-                addOutput(cmd);
-                
-                if (cmd === 'ajuda') {
-                    addOutput("Comandos: status, limpar, scan, alerta, bio");
-                } else if (cmd === 'status') {
-                    addOutput("Sistemas nominais. Oxigénio: 98%. Temperatura: -55°C.");
-                } else if (cmd === 'limpar') {
-                    output.innerHTML = "";
-                } else if (cmd === 'alerta') {
-                    toggleAlert();
-                } else if (cmd === 'scan') {
-                    addOutput("A iniciar scan infravermelho... Nenhum sinal biológico detetado.");
+        function runCommand(cmd) {
+            const c = cmd.toLowerCase().trim();
+            if(!c) return;
+
+            addLog(c);
+
+            if(c === 'scan') {
+                const found = state.minerais[Math.floor(Math.random() * state.minerais.length)];
+                addLog(`SCAN CONCLUÍDO: DETECTADO ${found.toUpperCase()}.`);
+                state.lastScan = found;
+            } 
+            else if(c === 'coletar') {
+                if(state.lastScan) {
+                    state.items.push(state.lastScan);
+                    addLog(`AMOSTRA DE ${state.lastScan} ARMAZENADA.`);
+                    state.lastScan = null;
+                    state.bat -= 5;
                 } else {
-                    addOutput("Comando desconhecido: " + cmd);
+                    addLog("ERRO: NENHUM MINERAL SELECIONADO. FAÇA UM SCAN PRIMEIRO.", "error");
                 }
-                
-                input.value = "";
+            }
+            else if(c === 'limpar') {
+                document.getElementById('log').innerHTML = "";
+            }
+            else if(c === 'ajuda') {
+                addLog("COMANDOS: SCAN, COLETAR, LIMPAR, STATUS, REBOOT");
+            }
+            else {
+                addLog("COMANDO INVÁLIDO.", "error");
+            }
+            updateUI();
+        }
+
+        function changeCam(filter) {
+            document.getElementById('camera-feed').style.filter = filter;
+            addLog("MUDANÇA DE ESPECTRO VISUAL EXECUTADA.");
+        }
+
+        // Evento do Teclado
+        document.getElementById('cmd-in').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                runCommand(e.target.value);
+                e.target.value = "";
             }
         });
 
-        function toggleAlert() {
-            const frame = document.querySelector('.ui-frame');
-            if (frame.style.borderColor === 'rgb(255, 0, 60)') {
-                frame.style.borderColor = 'var(--neon-blue)';
-                document.body.style.color = 'var(--neon-blue)';
-                addOutput("Alerta cancelado.");
-            } else {
-                frame.style.borderColor = 'var(--neon-red)';
-                document.body.style.color = 'var(--neon-red)';
-                addOutput("ALERTA CRÍTICO ATIVADO!");
-            }
-        }
+        // Relógio e Consumo de Recursos
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+            if(state.ox > 0) state.ox -= 0.01;
+            updateUI();
+        }, 1000);
+
+        addLog("SISTEMA OPERATIVO ARES INICIALIZADO COM SUCESSO.");
     </script>
 </body>
 </html>
