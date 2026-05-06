@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES-1 | Mars Command Center</title>
+    <style>
+        :root {
+            --mars-red: #ff4d4d;
+            --mars-glow: rgba(255, 77, 77, 0.3);
+            --bg-dark: #050505;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--mars-red);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Scanlines e Grão de Filme */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 2px 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        header {
+            padding: 20px;
+            border-bottom: 2px solid var(--mars-red);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(20, 0, 0, 0.8);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* Cartões de Dados */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .panel {
+            border: 1px solid var(--mars-red);
+            padding: 15px;
+            background: rgba(255, 0, 0, 0.02);
+            box-shadow: inset 0 0 10px var(--mars-glow);
+        }
+
+        .data-value {
+            font-size: 2.2rem;
+            color: #fff;
+            text-shadow: 0 0 8px var(--mars-red);
+        }
+
+        /* Consola de Log */
+        .console {
+            border: 1px solid var(--mars-red);
+            background: #000;
+            padding: 10px;
+            font-size: 0.8rem;
+            height: 400px;
+            overflow-y: hidden;
+            position: relative;
+        }
+
+        .console-title {
+            background: var(--mars-red);
+            color: black;
+            padding: 2px 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .log-entry { margin-bottom: 5px; border-left: 2px solid var(--mars-red); padding-left: 5px; }
+
+        /* Barras de Recurso */
+        .bar-container {
+            width: 100%;
+            height: 10px;
+            border: 1px solid var(--mars-red);
+            margin-top: 10px;
+        }
+        .bar-fill {
+            height: 100%;
+            background: var(--mars-red);
+            width: 80%;
+            transition: width 0.5s;
+        }
+
+        .emergency-btn {
+            background: transparent;
+            color: var(--mars-red);
+            border: 2px solid var(--mars-red);
+            padding: 15px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .emergency-btn:hover {
+            background: var(--mars-red);
+            color: black;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        .cursor { animation: blink 1s infinite; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1 style="margin:0; font-size: 1.5rem;">ARES-1 MISSION CONTROL</h1>
+            <small>LOCATION: ELYSIUM PLANITIA | SOL: <span id="sol-counter">482</span></small>
+        </div>
+        <div id="clock">00:00:00</div>
+    </header>
+
+    <div class="main-layout">
+        <section>
+            <div class="status-grid">
+                <div class="panel">
+                    <h3>TEMP. EXTERNA</h3>
+                    <div class="data-value" id="temp">-62.4°C</div>
+                </div>
+                <div class="panel">
+                    <h3>OXIGÉNIO</h3>
+                    <div class="data-value">98.2%</div>
+                    <div class="bar-container"><div class="bar-fill" style="width: 98%;"></div></div>
+                </div>
+                <div class="panel">
+                    <h3>ENERGIA SOLAR</h3>
+                    <div class="data-value" id="power">4.2 kW</div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 20px; text-align: center;">
+                <img src="https://www.nasa.gov/wp-content/uploads/2023/03/pia25640-perseverance-selfie-at-belva-crater-horizontal.jpg" 
+                     alt="Mars View" style="width: 100%; filter: sepia(0.5) contrast(1.2) brightness(0.8);">
+                <p>LIVE FEED: ROVER UNIT-01</p>
+            </div>
+        </section>
+
+        <aside>
+            <div class="console">
+                <div class="console-title">SYSTEM_LOG_v4.0</div>
+                <div id="log-content">
+                    <div class="log-entry">> Inicializando sistemas...</div>
+                    <div class="log-entry">> Link satélite ativo.</div>
+                </div>
+                <span class="cursor">_</span>
+            </div>
+            <button class="emergency-btn" onclick="triggerAlarm()">ABORTAR MISSÃO</button>
+        </aside>
+    </div>
+
+    <script>
+        // 1. Relógio em tempo real
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+
+        // 2. Simulação de sensores oscilantes
+        setInterval(() => {
+            const temp = (-60 + (Math.random() * 5)).toFixed(1);
+            const power = (4 + (Math.random() * 0.5)).toFixed(2);
+            document.getElementById('temp').innerText = temp + "°C";
+            document.getElementById('power').innerText = power + " kW";
+        }, 3000);
+
+        // 3. Gerador de Log Automático
+        const messages = [
+            "Tempestade de areia detetada a 40km.",
+            "Calibração de antena concluída.",
+            "Aviso: Nível de poeira nos painéis subiu 2%.",
+            "Sinal recebido da Deep Space Network.",
+            "Rover movendo-se para quadrante B-12."
+        ];
+
+        function addLog() {
+            const logContainer = document.getElementById('log-content');
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerText = "> " + msg;
+            logContainer.appendChild(div);
+            
+            // Manter apenas as últimas 10 mensagens
+            if(logContainer.children.length > 10) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        setInterval(addLog, 5000);
+
+        function triggerAlarm() {
+            document.body.style.backgroundColor = "red";
+            setTimeout(() => { document.body.style.backgroundColor = "#050505"; }, 200);
+            alert("ALERTA CRÍTICO: Comando de aborto recebido!");
+        }
+    </script>
+</body>
+</html>
